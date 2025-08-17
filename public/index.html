@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Meeting Notes Summarizer</title>
+  <style>
+    /* Reset + base */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; 
+      background: #f7f9fc; 
+      color: #333; 
+      line-height: 1.6;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 860px;
+      width: 100%;
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 6px;
+      text-align: center;
+      color: #2c3e50;
+    }
+    p small {
+      display: block;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #666;
+    }
+
+    label {
+      font-weight: 600;
+      margin: 8px 0 4px;
+    }
+
+    textarea, input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    textarea:focus, input:focus {
+      outline: none;
+      border-color: #4a90e2;
+      box-shadow: 0 0 4px rgba(74,144,226,0.4);
+    }
+
+    .actions {
+      display: flex; 
+      gap: 10px; 
+      margin: 12px 0;
+    }
+
+    button {
+      flex: 1;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 6px;
+      background: #4a90e2;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    button:hover { background: #357ABD; }
+    button:active { transform: scale(0.97); }
+    #clearBtn { background: #aaa; }
+    #clearBtn:hover { background: #888; }
+
+    #summary { min-height: 200px; }
+
+    #status {
+      margin-top: 8px;
+      font-size: 0.9em;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>AI Meeting Notes Summarizer</h1>
+    <p><small>Upload or paste a transcript, add an instruction, generate a summary, edit it, then email it.</small></p>
+
+    <div class="col">
+      <label>Upload Transcript (.txt optional)</label>
+      <input type="file" id="fileInput" accept=".txt" />
+    </div>
+
+    <div class="col">
+      <label>Transcript</label>
+      <textarea id="transcript" rows="10" placeholder="Paste or load transcript here..."></textarea>
+    </div>
+
+    <div class="col">
+      <label>Instruction / Prompt</label>
+      <input id="prompt" placeholder="e.g., Summarize in bullet points for executives. Highlight only action items." />
+    </div>
+
+    <div class="actions">
+      <button id="generateBtn">Generate Summary</button>
+      <button id="clearBtn">Clear</button>
+    </div>
+
+    <div class="col">
+      <label>Summary (Editable)</label>
+      <textarea id="summary" placeholder="Generated summary appears here. You can edit before emailing."></textarea>
+    </div>
+
+    <div class="col">
+      <label>Send via Email</label>
+      <input id="emails" placeholder="recipient1@example.com, recipient2@example.com" />
+      <input id="subject" placeholder="Email Subject (e.g., Meeting Summary - Aug 17)" />
+      <button id="sendBtn">Send Email</button>
+      <div id="status"></div>
+    </div>
+  </div>
+<!-- yahan se js -->
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const transcriptEl = document.getElementById('transcript');
+    const promptEl = document.getElementById('prompt');
+    const summaryEl = document.getElementById('summary');
+    const emailsEl = document.getElementById('emails');
+    const subjectEl = document.getElementById('subject');
+    const statusEl = document.getElementById('status');
+    const genBtn = document.getElementById('generateBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const sendBtn = document.getElementById('sendBtn');
+
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      const text = await file.text();
+      transcriptEl.value = text;
+    });
+
+    clearBtn.addEventListener('click', () => {
+      transcriptEl.value = '';
+      promptEl.value = '';
+      summaryEl.value = '';
+      emailsEl.value = '';
+      subjectEl.value = '';
+      statusEl.textContent = '';
+    });
+
+    genBtn.addEventListener('click', async () => {
+      const transcript = transcriptEl.value.trim();
+      const prompt = promptEl.value.trim();
+      if (!transcript || !prompt) {
+        return alert('Please provide transcript and instruction.');
+      }
+      statusEl.textContent = 'Generating...';
+      try {
+        const resp = await fetch('/api/summarize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transcript, prompt })
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'Generation failed');
+        summaryEl.value = data.summary || '';
+        statusEl.textContent = 'Summary generated ✅';
+      } catch (e) {
+        console.error(e);
+        statusEl.textContent = 'Error: ' + e.message;
+      }
+    });
+
+    sendBtn.addEventListener('click', async () => {
+      const to = emailsEl.value.split(',').map(s => s.trim()).filter(Boolean);
+      const subject = subjectEl.value.trim() || 'Meeting Summary';
+      const html = `<pre style="font-family:inherit;white-space:pre-wrap;">${summaryEl.value
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>`;
+
+      if (!to.length) return alert('Enter at least one recipient email.');
+      statusEl.textContent = 'Sending...';
+      try {
+        const resp = await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to, subject, html })
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'Send failed');
+        statusEl.textContent = 'Email sent ✅ (Message-ID: ' + (data.messageId || 'n/a') + ')';
+      } catch (e) {
+        console.error(e);
+        statusEl.textContent = 'Error: ' + e.message;
+      }
+    });
+  </script>
+</body>
+</html>
