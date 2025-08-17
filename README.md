@@ -4,27 +4,19 @@
 
 ---
 
-## ✨ Overview  
-Tired of scrolling through endless meeting notes or transcripts?  
-This project is a lightweight **AI-powered summarizer** that:  
+## Getting Started  
 
-- ⚡ Quickly shortens meeting notes  
-- ✅ Highlights key action items  
-- ✍️ Lets you edit before sending  
-- 📧 Shares the final summary instantly via email  
+Follow these steps to run the project locally:  
 
----
+```bash
+# Clone the repository
+git clone https://github.com/Bhartendu-02/AI-powered-meeting-notes-summarizer-and-sharer.git
 
-## ⚡ Features  
-- 📂 Upload or paste transcripts  
-- 💡 Add custom AI instructions (e.g., *“Summarize in bullet points”*)  
-- ✍️ Review & edit summaries before sending  
-- 📧 Send polished summaries directly to your team’s inbox  
+# Navigate into the project folder
+cd AI-powered-meeting-notes-summarizer-and-sharer
 
----
+# Install dependencies
+npm install
 
-## 🛠 Tech Stack  
-- **Frontend:** HTML + CSS + JavaScript (lightweight, no bulky frameworks)  
-- **Backend:** Node.js with Express  
-- **AI:** Powered by **Groq API** for fast & reliable summarization  
-- **Email:** SMTP (compatible with Gmail, Outlook, SendGrid, etc.)  
+# Run the development server
+npm start
