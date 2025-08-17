@@ -1,6 +1,6 @@
 # AI Meeting Notes Summarizer
 
-**Live Demo:** [ai-notes-summarizer-jizc.onrender.com](https://ai-notes-summarizer-jizc.onrender.com)
+**Live Demo:** [ai-notes-summarizer-ten.vercel.app](https://ai-notes-summarizer-ten.vercel.app/)
 
 ---
 
